@@ -1,0 +1,48 @@
+import numpy as np
+import random
+import matplotlib.pyplot as plt
+
+def handle_chooser_greedy(Action_values):
+  maxim_values_location = np.zeros((np.size(Action_values,0),1))
+  maxim_values = -100*np.ones((np.size(Action_values,0),1))
+  for i in range(np.size(Action_values,0)):
+    for j in range(np.size(Action_values,1)):
+      if maxim_values[i] <= Action_values[i][j]:
+        maxim_values[i] = Action_values[i][j]
+        maxim_values_location[i] = int(j)
+  return maxim_values_location
+
+def random_number_creator(choosen_handle) :
+  mu = [0.25, -0.75, 1.5, 0.5, 1.25, -1.5, -0.25, -1, 1, -0.5]
+  sigma = 1
+  return_value = np.zeros((np.size(choosen_handle,0),np.size(choosen_handle,1)))
+  for i in range(np.size(choosen_handle,0)):
+    handle = int(choosen_handle[i][0])
+    handle_mu = mu[handle]
+    return_value[i][0] = random.gauss(handle_mu, sigma)
+  return return_value
+
+def Action_value_function(old_Action_values,choosen_handle,return_value,handle_counter):
+  New_Action_values = old_Action_values
+  for i in range(np.size(New_Action_values,0)):
+    slot_choosen_handle=int(choosen_handle[i][0])
+    handle_counter[i][slot_choosen_handle] = handle_counter[i][slot_choosen_handle] + 1
+    New_Action_values[i][slot_choosen_handle] = old_Action_values[i][slot_choosen_handle] + (1/handle_counter[i][slot_choosen_handle])*(return_value[i][0]-old_Action_values[i][slot_choosen_handle])
+  return (New_Action_values,handle_counter)
+
+Action_values = np.zeros((2000,10))
+average_values_greedy = np.zeros((1000,1))
+handle_counter = np.zeros((2000,10))
+k = 0
+while k < 1000:
+  choosen_handle = handle_chooser_greedy(Action_values)
+  return_value=random_number_creator(choosen_handle)
+  average_values_greedy[k][0] = np.average(return_value)
+  k= k+1
+  (Action_values,handle_counter) = Action_value_function(Action_values,choosen_handle,return_value,handle_counter)
+
+plt.title("Greedy")
+plt.plot(range(1,1001), average_values_greedy,'g')
+plt.xlabel("Steps")
+plt.ylabel("Average Rewards")
+plt.show()
