@@ -1,0 +1,78 @@
+import numpy as np
+import random
+import matplotlib.pyplot as plt
+
+def handle_chooser_eps_greedy_hundrenth(Action_values):
+  maxim_values_location = np.zeros((np.size(Action_values,0),1))
+  maxim_values = -10*np.ones((np.size(Action_values,0),1))
+  choosen_handle = np.zeros((np.size(Action_values,0),1))
+  for i in range(np.size(Action_values,0)):
+    for j in range(np.size(Action_values,1)):
+      if maxim_values[i] <= Action_values[i][j]:
+        maxim_values[i] = Action_values[i][j]
+        maxim_values_location[i] = int(j)
+  for i in range(np.size(Action_values,0)):
+    handle_chooser=random.uniform(0,1)
+    if 0 <= handle_chooser <= 0.99:
+      choosen_handle[i]=int(maxim_values_location[i])
+    elif 0.99 <= handle_chooser < 0.991:
+      choosen_handle[i] = 0
+    elif 0.991 <= handle_chooser < 0.992:
+      choosen_handle[i] = 1
+    elif 0.992 <= handle_chooser < 0.993:
+      choosen_handle[i] = 2
+    elif 0.993 <= handle_chooser < 0.994:
+      choosen_handle[i] = 3
+    elif 0.994 <= handle_chooser < 0.995:
+      choosen_handle[i] = 4
+    elif 0.995 <= handle_chooser < 0.996:
+      choosen_handle[i] = 5
+    elif 0.996 <= handle_chooser < 0.997:
+      choosen_handle[i] = 6
+    elif 0.997 <= handle_chooser < 0.998:
+      choosen_handle[i] = 7
+    elif 0.998 <= handle_chooser < 0.999:
+      choosen_handle[i] = 8
+    elif 0.999 <= handle_chooser <= 1:
+      choosen_handle[i] = 9
+  return choosen_handle
+
+def random_number_creator(choosen_handle) :
+  mu = [0.25, -0.75, 1.5, 0.5, 1.25, -1.5, -0.25, -1, 1, -0.5]
+  sigma = 1
+  return_value = np.zeros((np.size(choosen_handle,0),np.size(choosen_handle,1)))
+  for i in range(np.size(choosen_handle,0)):
+    handle = int(choosen_handle[i][0])
+    handle_mu = mu[handle]
+    return_value[i][0] = random.gauss(handle_mu, sigma)
+  return return_value
+
+def Action_value_function(old_Action_values,choosen_handle,return_value,handle_counter):
+  New_Action_values = old_Action_values
+  for i in range(np.size(New_Action_values,0)):
+    slot_choosen_handle=int(choosen_handle[i][0])
+    handle_counter[i][slot_choosen_handle] = handle_counter[i][slot_choosen_handle] + 1
+    New_Action_values[i][slot_choosen_handle] = old_Action_values[i][slot_choosen_handle] + (1/handle_counter[i][slot_choosen_handle])*(return_value[i][0]-old_Action_values[i][slot_choosen_handle])
+  return (New_Action_values,handle_counter)
+
+handle_counter = np.zeros((2000,10))
+Action_values = np.ones((2000,10))
+for i in range(np.size(Action_values,0)):
+  for j in range(np.size(Action_values,1)):
+    Action_values[i][j]=random.uniform(0,1)
+average_values_eps001_greedy = np.zeros((1000,1))
+k = 0
+while k < 1000:
+  choosen_handle = handle_chooser_eps_greedy_hundrenth(Action_values)
+  # print(choosen_handle)
+  return_value=random_number_creator(choosen_handle)
+  average_values_eps001_greedy[k][0] = np.average(return_value)
+  k= k+1
+  (Action_values,handle_counter) = Action_value_function(Action_values,choosen_handle,return_value,handle_counter)
+  # print(Action_values)
+
+plt.title("epsilon-Greedy-0.01")
+plt.plot(range(1,1001), average_values_eps001_greedy,'r')
+plt.xlabel("Steps")
+plt.ylabel("Average Rewards")
+plt.show()
