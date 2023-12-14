@@ -1,0 +1,16 @@
+import numpy as np
+import random
+import matplotlib.pyplot as plt
+def random_number_creator(mu,sigma) :
+    number = random.gauss( mu, sigma)
+    return number
+n= 10
+mu = [0.25, -0.75, 1.5, 0.5, 1.25, -1.5, -0.25, -1, 1, -0.5]
+sigma = 1
+counter = 9
+number = average_values = np.zeros((1000,1))
+for n in range(0,1000):
+  number[n][0] = random_number_creator(mu[counter],sigma)
+
+plt.hist(number,bins=20)
+plt.show()
