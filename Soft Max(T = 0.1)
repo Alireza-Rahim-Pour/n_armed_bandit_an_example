@@ -1,0 +1,76 @@
+import numpy as np
+import random
+import matplotlib.pyplot as plt
+
+def handle_chooser_soft_max(Action_values):
+  T=0.1
+  choosen_handle = np.zeros((np.size(Action_values,0),1))
+  choosen_handle_probability = np.zeros((np.size(Action_values,0),np.size(Action_values,1)))
+  for i in range(np.size(choosen_handle_probability,0)):
+    for j in range(np.size(choosen_handle_probability,1)):
+      choosen_handle_probability[i][j] = np.exp(Action_values[i][j]/T)
+    Probability_row_sum = np.sum(choosen_handle_probability[i],axis = 0)
+    for j in range(np.size(choosen_handle_probability,1)):
+          choosen_handle_probability[i][j] = choosen_handle_probability[i][j]/Probability_row_sum
+  for i in range(np.size(Action_values,0)):
+    handle_chooser=random.uniform(0,1)
+    cumalative_summation = np.cumsum(choosen_handle_probability[i])
+    if 0 <= handle_chooser <= cumalative_summation[0]:
+      choosen_handle[i]=0
+    elif cumalative_summation[0] <= handle_chooser < cumalative_summation[1]:
+      choosen_handle[i] = 1
+    elif cumalative_summation[1] <= handle_chooser < cumalative_summation[2]:
+      choosen_handle[i] = 2
+    elif cumalative_summation[2] <= handle_chooser < cumalative_summation[3]:
+      choosen_handle[i] = 3
+    elif cumalative_summation[3] <= handle_chooser < cumalative_summation[4]:
+      choosen_handle[i] = 4
+    elif cumalative_summation[4] <= handle_chooser < cumalative_summation[5]:
+      choosen_handle[i] = 5
+    elif cumalative_summation[5] <= handle_chooser < cumalative_summation[6]:
+      choosen_handle[i] = 6
+    elif cumalative_summation[6] <= handle_chooser < cumalative_summation[7]:
+      choosen_handle[i] = 7
+    elif cumalative_summation[7] <= handle_chooser < cumalative_summation[8]:
+      choosen_handle[i] = 8
+    elif cumalative_summation[8] <= handle_chooser < cumalative_summation[9]:
+      choosen_handle[i] = 9
+  return choosen_handle
+
+def random_number_creator(choosen_handle) :
+  mu = [0.25, -0.75, 1.5, 0.5, 1.25, -1.5, -0.25, -1, 1, -0.5]
+  sigma = 1
+  return_value = np.zeros((np.size(choosen_handle,0),np.size(choosen_handle,1)))
+  for i in range(np.size(choosen_handle,0)):
+    handle = int(choosen_handle[i][0])
+    handle_mu = mu[handle]
+    return_value[i][0] = random.gauss(handle_mu, sigma)
+  return return_value
+
+def Action_value_function(old_Action_values,choosen_handle,return_value,handle_counter):
+  New_Action_values = old_Action_values
+  for i in range(np.size(New_Action_values,0)):
+    slot_choosen_handle=int(choosen_handle[i][0])
+    handle_counter[i][slot_choosen_handle] = handle_counter[i][slot_choosen_handle] + 1
+    New_Action_values[i][slot_choosen_handle] = old_Action_values[i][slot_choosen_handle] + (1/handle_counter[i][slot_choosen_handle])*(return_value[i][0]-old_Action_values[i][slot_choosen_handle])
+  return (New_Action_values,handle_counter)
+
+handle_counter = np.zeros((2000,10))
+Action_values = np.ones((2000,10))
+for i in range(np.size(Action_values,0)):
+  for j in range(np.size(Action_values,1)):
+    Action_values[i][j]=random.uniform(-1,1)
+average_values_SM_T01 = np.zeros((1000,1))
+k = 0
+while k < 1000:
+  choosen_handle = handle_chooser_soft_max(Action_values)
+  return_value=random_number_creator(choosen_handle)
+  average_values_SM_T01[k][0] = np.average(return_value)
+  k= k+1
+  (Action_values,handle_counter) = Action_value_function(Action_values,choosen_handle,return_value,handle_counter)
+
+plt.title("Soft Max T=0.1")
+plt.plot(range(1,1001), average_values_SM_T01,'y')
+plt.xlabel("Steps")
+plt.ylabel("Average Rewards")
+plt.show()
